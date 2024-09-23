@@ -8,7 +8,6 @@ package common
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -19,13 +18,33 @@ import (
 )
 
 func workstationCheckLicense() error {
-	matches, err := filepath.Glob("/etc/vmware/license-ws-*")
-	if err != nil {
-		return fmt.Errorf("error finding license: %s", err)
-	}
+	workstationLicensePath := "/etc/vmware/license-ws-*"
+	playerPath := "/usr/bin/player"
 
-	if len(matches) == 0 {
-		return errors.New("no license found")
+	matches, _ := filepath.Glob(workstationLicensePath)
+
+	if len(matches) > 0 {
+		// A license file was found.
+		// Check for the VMware Workstation Player binary.
+		if _, err := os.Stat(playerPath); os.IsNotExist(err) {
+			// The VMware Workstation Player binary was not found.
+			// VMware Workstation is licensed for commercial use.
+			log.Printf("VMware Workstation is licensed for Commercial Use.")
+		} else {
+			// The VMware Workstation Player binary was found.
+			log.Printf("VMware Workstation Player is licensed for Commercial Use.")
+		}
+	} else {
+		// A license file was not found.
+		// Check for the VMware Workstation Player binary.
+		if _, err := os.Stat(playerPath); os.IsNotExist(err) {
+			// The VMware Workstation Player binary was not found.
+			// VMware Workstation is licensed for personal use.
+			log.Printf("VMware Workstation is licensed for Personal Use.")
+		} else {
+			// The VMware Workstation Player binary was found.
+			log.Printf("VMware Workstation Player is licensed for Personal Use.")
+		}
 	}
 
 	return nil
