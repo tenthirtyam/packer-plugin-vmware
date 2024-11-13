@@ -17,11 +17,6 @@ import (
 
 // VMware Workstation Player for Windows.
 
-const (
-	playerInstallationPathKey = `SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\vmplayer.exe`
-	playerRegistryKey         = "SYSTEM\\CurrentControlSet\\services\\VMnetDHCP\\Parameters"
-)
-
 func playerExecutable(executable string) (string, error) {
 	path, err := exec.LookPath(executable + ".exe")
 	if err == nil {
@@ -178,12 +173,15 @@ func playerVerifyVersion(version string) error {
 		}
 	}
 
-	versionRe := regexp.MustCompile(`^(\d+)\.`)
+	versionRe := regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)`)
 	matches := versionRe.FindStringSubmatch(productVersion)
-	if matches == nil {
+
+	if matches == nil || len(matches) < 4 {
 		return fmt.Errorf("error retrieving the version from registry key %s\\%s: '%s'", key, subkey, productVersion)
 	}
-	log.Printf("[INFO] VMware Workstation Player: %s", matches[1])
 
-	return compareVersions(matches[1], version, "Player")
+	fullVersion := fmt.Sprintf("%s.%s.%s", matches[1], matches[2], matches[3])
+	log.Printf("[INFO] %s: %s", playerProductName, fullVersion)
+
+	return compareVersions(fullVersion, version, playerProductName)
 }

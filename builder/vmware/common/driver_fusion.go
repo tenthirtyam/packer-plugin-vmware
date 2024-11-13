@@ -17,20 +17,10 @@ import (
 	"github.com/hashicorp/packer-plugin-sdk/multistep"
 )
 
-const (
-	// VMware Fusion application name.
-	fusionProductName = "VMware Fusion"
-
-	// VMware Fusion versions.
-	// TODO: Update to best effort comply with the Broadcom Product Lifecycle.
-	minimumFusionVersion       = "6.0.0"
-	isoPathChangeFusionVersion = "13.0.0"
-)
-
 // Initialize version objects
 var (
-	minimumFusionVersionObj, _       = version.NewVersion(minimumFusionVersion)
-	isoPathChangeFusionVersionObj, _ = version.NewVersion(isoPathChangeFusionVersion)
+	fusionMinVersionObj, _           = version.NewVersion(fusionMinVersion)
+	fusionIsoPathChangeVersionObj, _ = version.NewVersion(fusionIsoPathChangeVersion)
 )
 
 const fusionSuppressPlist = `<?xml version="1.0" encoding="UTF-8"?>
@@ -283,7 +273,7 @@ func (d *FusionDriver) Verify() error {
 		return ReadNetworkingConfig(fd)
 	}
 
-	return compareVersionObjects(version, minimumFusionVersionObj, fusionProductName)
+	return compareVersionObjects(version, fusionMinVersionObj, fusionProductName)
 }
 
 func (d *FusionDriver) ToolsIsoPath(k string) string {
@@ -305,13 +295,13 @@ func (d *FusionDriver) ToolsIsoPath(k string) string {
 		return d.toolsIsoPath(archAMD64, d.isoFileName(k))
 	}
 
-	if isoPathChangeFusionVersionObj == nil {
+	if fusionIsoPathChangeVersionObj == nil {
 		log.Printf("[WARN] Unable to parse %s version for comparison. Using the default path.", fusionProductName)
 		return d.toolsIsoPath(archAMD64, d.isoFileName(k))
 	}
 
 	arch := archAMD64
-	if parsedVersion.GreaterThanOrEqual(isoPathChangeFusionVersionObj) && k == osWindows && runtime.GOARCH == archARM64 {
+	if parsedVersion.GreaterThanOrEqual(fusionIsoPathChangeVersionObj) && k == osWindows && runtime.GOARCH == archARM64 {
 		arch = archARM64
 	}
 
